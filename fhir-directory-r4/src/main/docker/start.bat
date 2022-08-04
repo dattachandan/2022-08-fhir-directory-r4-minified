@@ -1,0 +1,3 @@
+@echo off
+cd c:/healthlink/app
+java -Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi.port=9000 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -jar @project.artifactId@.jar --logging.config=conf/logback.xml --spring.config.location=conf/application.properties

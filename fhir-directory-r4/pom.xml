@@ -1,0 +1,466 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.healthlink</groupId>
+  <artifactId>fhir-directory-r4</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  
+  <parent>
+		<groupId>net.healthlink</groupId>
+		<artifactId>fhir-directory-r4-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent> 
+	
+	<properties>
+		<project.solution.name>messaging</project.solution.name>
+		<project.application.name>${project.artifactId}</project.application.name>
+		<project.application.port>6012</project.application.port>
+		<project.application.image.name>healthlink/${project.solution.name}-${project.application.name}</project.application.image.name>
+		<project.application.resource.path>${project.solution.name}/${project.application.resource.name}</project.application.resource.path>
+		<hapi.version>5.7.2</hapi.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+	</properties>
+	
+	<repositories>
+		
+		<repository>
+			<id>oss-snapshot</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+	</repositories>
+
+<build>
+<sourceDirectory>src/main/java</sourceDirectory>
+<testSourceDirectory>src/test/java</testSourceDirectory>
+
+<finalName>${project.artifactId}</finalName>
+		<resources>
+		<resource>
+			<directory>src/main/resources</directory>
+			<includes>
+			<include>application.properties</include>
+			<include>bootstrap.properties</include>
+			<include>logback.xml</include>
+			</includes>
+			<filtering>true</filtering>
+		</resource>
+		</resources>
+
+<pluginManagement>
+			<plugins>
+			<plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>5.3.0</version>
+                </plugin>
+			
+			
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <configuration>
+				    <includes>
+				      <include>**/*Test.java</include>
+				    </includes>
+				    <systemPropertyVariables>
+			            <pact.rootDir>target/pacts</pact.rootDir>
+			        </systemPropertyVariables>
+				  </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.22.0</version>
+            </plugin>
+			
+			</plugins>
+		</pluginManagement>
+	
+		<plugins>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.5.201505241946</version>
+				<configuration>
+					<append>true</append>
+				</configuration>
+				<executions>
+					<execution>
+						<id>agent-for-ut</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>agent-for-it</id>
+						<goals>
+							<goal>prepare-agent-integration</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-site</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			
+			
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.7</version>
+				<dependencies>
+			     <dependency>
+			       <groupId>org.apache.maven.shared</groupId>
+			       <artifactId>maven-filtering</artifactId>
+			       <version>1.3</version>
+			     </dependency>
+			   </dependencies>
+				<executions>
+					<execution>
+						<id>prepare-resource-1</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/docker/conf</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources</directory>
+									<include>application.properties</include>
+									<include>bootstrap.properties</include>
+									<include>logback.xml</include>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+							<delimiters>
+								<delimiter>@</delimiter>
+							</delimiters>
+							<useDefaultDelimiters>false</useDefaultDelimiters>
+						</configuration>
+					</execution>
+					<execution>
+						<id>prepare-resource-2</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/docker/conf/SRAStructureDefinitions</outputDirectory>
+							<resources>
+								<resource>
+									<directory>conf/SRAStructureDefinitions</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+							<delimiters>
+								<delimiter>@</delimiter>
+							</delimiters>
+							<useDefaultDelimiters>false</useDefaultDelimiters>
+						</configuration>
+					</execution>
+					<execution>
+						<id>prepare-deploy-script</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/deploy/script</outputDirectory>
+							<resources>
+								<resource>
+								<directory>src/main/deploy</directory>
+								<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+						</execution>
+						<execution>
+							<id>prepare-start-bat</id>
+							<phase>validate</phase>
+							<goals>
+								<goal>copy-resources</goal>
+							</goals>
+							<configuration>
+								<outputDirectory>./</outputDirectory>
+								<resources>
+									<resource>
+									<directory>src/main/docker</directory>
+									<include>start.bat</include>
+									<filtering>true</filtering>
+									</resource>
+								</resources>
+							</configuration>
+						</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+<dependencies>
+
+<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+<!-- https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-base -->
+<dependency>
+    <groupId>ca.uhn.hapi.fhir</groupId>
+    <artifactId>hapi-fhir-base</artifactId>
+    <version>${hapi.version}</version>
+    
+</dependency>
+<!-- https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-client -->
+<dependency>
+    <groupId>ca.uhn.hapi.fhir</groupId>
+    <artifactId>hapi-fhir-client</artifactId>
+    <version>${hapi.version}</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-structures-r4 -->
+<dependency>
+    <groupId>ca.uhn.hapi.fhir</groupId>
+    <artifactId>hapi-fhir-structures-r4</artifactId>
+    <!-- <version>4.1.0</version> -->
+    <version>${hapi.version}</version>
+</dependency>
+<!-- This dependency includes the JPA server itself, which is packaged separately from the rest of HAPI FHIR -->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-jpaserver-base</artifactId>
+            <version>${hapi.version}</version>
+        </dependency>
+
+<!-- This dependency includes the JPA server itself, which is packaged separately from the rest of HAPI FHIR -->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-server</artifactId>
+            <version>${hapi.version}</version>
+        </dependency>
+
+<!-- https://mvnrepository.com/artifact/ca.uhn.hapi.fhir/hapi-fhir-jpaserver-searchparam -->
+<dependency>
+    <groupId>ca.uhn.hapi.fhir</groupId>
+    <artifactId>hapi-fhir-jpaserver-searchparam</artifactId>
+    <version>${hapi.version}</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-dbcp2 -->
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-dbcp2</artifactId>
+	<version>2.9.0</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
+<dependency>
+    <groupId>com.microsoft.sqlserver</groupId>
+    <artifactId>mssql-jdbc</artifactId>
+	<version>10.2.0.jre8</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/com.mindscapehq/core -->
+<dependency>
+    <groupId>com.mindscapehq</groupId>
+    <artifactId>core</artifactId>
+    <version>3.0.0</version>
+</dependency>
+
+
+<!-- https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api -->
+<dependency>
+    <groupId>javax.xml.bind</groupId>
+    <artifactId>jaxb-api</artifactId>
+	<version>2.3.1</version>
+</dependency>
+
+<dependency>
+    <groupId>org.apache.tomcat</groupId>
+    <artifactId>tomcat-jdbc</artifactId>
+	<version>10.0.21</version>
+</dependency>
+
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-api</artifactId>
+	<version>5.8.2</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-engine</artifactId>
+	<version>5.8.2</version>
+    <scope>test</scope>
+</dependency>
+
+
+
+<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+<dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>28.2-jre</version>
+</dependency>
+
+
+<!-- https://mvnrepository.com/artifact/au.com.dius/pact-jvm-consumer-junit5 -->
+<dependency>
+    <groupId>au.com.dius</groupId>
+    <artifactId>pact-jvm-consumer-junit5</artifactId>
+    <version>4.0.5</version>
+    <scope>test</scope>
+</dependency>
+<!-- https://mvnrepository.com/artifact/au.com.dius/pact-jvm-consumer-java8 -->
+<dependency>
+    <groupId>au.com.dius</groupId>
+    <artifactId>pact-jvm-consumer-java8</artifactId>
+    <version>4.0.3</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/au.com.dius/pact-jvm-consumer-junit -->
+<dependency>
+    <groupId>au.com.dius</groupId>
+    <artifactId>pact-jvm-consumer-junit</artifactId>
+    <version>4.0.5</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <version>1.4.199</version>
+
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.hsqldb/hsqldb -->
+<dependency>
+    <groupId>org.hsqldb</groupId>
+    <artifactId>hsqldb</artifactId>
+    <version>2.3.6</version>
+    <scope>test</scope>
+</dependency>
+
+
+<!-- https://mvnrepository.com/artifact/org.hamcrest/hamcrest-all -->
+<dependency>
+    <groupId>org.hamcrest</groupId>
+    <artifactId>hamcrest-all</artifactId>
+    <version>1.3</version>
+    <scope>test</scope>
+</dependency>
+
+<dependency>
+    <groupId>io.rest-assured</groupId>
+    <artifactId>rest-assured</artifactId>
+    <version>3.3.0</version>
+    <scope>test</scope>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/com.konghq/unirest-java -->
+<dependency>
+    <groupId>com.konghq</groupId>
+    <artifactId>unirest-java</artifactId>
+    <version>3.13.6</version>
+</dependency>
+
+<dependency>
+    <groupId>com.azure.spring</groupId>
+    <artifactId>azure-spring-cloud-appconfiguration-config-web</artifactId>
+    <version>2.6.0</version>
+</dependency>
+
+<dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.13.3</version>
+</dependency>
+
+
+ <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.13.3</version>
+ </dependency>
+
+
+ <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.3</version>
+  </dependency>
+  
+  <dependency>
+    <groupId>io.projectreactor</groupId>
+    <artifactId>reactor-core</artifactId>
+    <version>3.4.19</version>
+</dependency> 
+
+<!-- https://mvnrepository.com/artifact/org.reactivestreams/reactive-streams -->
+<dependency>
+    <groupId>org.reactivestreams</groupId>
+    <artifactId>reactive-streams</artifactId>
+    <version>1.0.4</version>
+</dependency>
+
+
+</dependencies>
+
+ <profiles>
+		<profile>
+			<id>scanDependency</id>
+			<build>
+				<plugins>
+				<plugin>
+					<groupId>org.owasp</groupId>
+					<artifactId>dependency-check-maven</artifactId>
+					<version>5.2.2</version>
+					<configuration>
+					<autoUpdate>false</autoUpdate>
+					<failOnError>false</failOnError>
+					<suppressionFile>hl-portal-owasp-suppressions.xml</suppressionFile>
+					  <format>ALL</format>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>aggregate</goal>
+							</goals>
+						</execution>
+				  </executions>
+				</plugin>
+				</plugins>
+			</build>
+		</profile>
+    </profiles>
+
+</project>
